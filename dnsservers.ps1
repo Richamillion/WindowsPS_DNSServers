@@ -31,7 +31,13 @@ foreach ($Server in $Servers) {
                 # If adapter information cannot be found, set dns order
                 $dnsOrder = $LOCATION1
             }
-
+            # Check if current DNS is already correct based on IP prefix
+            $currentDNS = $Adapter.DNSServerSearchOrder
+            if ($currentDNS -and ($currentDNS -join ',') -eq ($dnsOrder -join ',')) {
+                Write-Host "No action needed on $ComputerName - DNS already set correctly on ($($Adapter.Description))."
+                continue
+            }
+            # Change DNS based on IP prefix
             $result = Invoke-CimMethod -InputObject $Adapter -MethodName SetDNSServerSearchOrder -Arguments @{ DNSServerSearchOrder = $dnsOrder }
             if ($result.ReturnValue -eq 0) {
                 Write-Host "DNS updated successfully on $ComputerName ($($Adapter.Description))"
